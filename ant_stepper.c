@@ -9,7 +9,7 @@
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
-#include "blink.pio.h"
+#include "ant_stepper.pio.h"
 
 void blink_pin_forever(PIO pio, uint sm, uint offset, uint pin, uint freq);
 

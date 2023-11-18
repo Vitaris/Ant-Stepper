@@ -38,5 +38,8 @@ void blink_pin_forever(PIO pio, uint sm, uint offset, uint pin, uint freq) {
 
     // PIO counter program takes 3 more cycles in total than we pass as
     // input (wait for n + 1; mov; jmp)
-    pio->txf[sm] = (clock_get_hz(clk_sys) / (2 * freq)) - 3;
+    int8_t minus_3 = -3;
+    // pio->txf[sm] = (clock_get_hz(clk_sys) / (2 * freq)) - 3;
+    uint32_t sys_clk = clock_get_hz(clk_sys);
+    pio->txf[sm] = (sys_clk / (2 * freq)) +  minus_3;
 }

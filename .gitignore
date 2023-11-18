@@ -1,4 +1,6 @@
 build
+quadrature_encoder
+.vscode
 
 # Prerequisites
 *.d

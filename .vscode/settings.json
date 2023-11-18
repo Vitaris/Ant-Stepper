@@ -28,5 +28,6 @@
         "stdlib.h": "c",
         "stdio.h": "c",
         "pio.h": "c"
-    }
+    },
+    "cortex-debug.variableUseNaturalFormat": false
 }

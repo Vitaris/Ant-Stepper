@@ -1,0 +1,47 @@
+; This program generates a square wave on a GPIO pin, with the frequency controlled by the OSR value.
+.program step_generator
+.wrap_target
+    mov x, osr
+    set pins, 1   ; Turn LED on
+lp1:
+    jmp x-- lp1   ; Delay for (x + 1) cycles, x is a 32 bit number
+    mov x, osr
+    set pins, 0   ; Turn LED off
+lp2:
+    jmp x-- lp2   ; Delay for the same number of cycles again
+.wrap
+
+% c-sdk {
+
+#include "hardware/clocks.h"
+#include "hardware/gpio.h"
+
+static inline void step_generator_program_init(PIO pio, uint sm, uint offset, uint pin) {
+   pio_gpio_init(pio, pin);
+   pio_sm_set_consecutive_pindirs(pio, sm, pin, 1, true);
+   pio_sm_config c = step_generator_program_get_default_config(offset);
+   sm_config_set_set_pins(&c, pin, 1);
+   sm_config_set_out_shift(&c, true, true, 32);
+   sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_NONE);
+   sm_config_set_clkdiv(&c, 1.0);
+   pio_sm_init(pio, sm, offset, &c);
+}
+
+static inline void step_generator_stop(PIO pio, uint sm) {
+    pio_sm_set_enabled(pio, sm, false);
+    pio_sm_restart(pio, sm);
+}
+
+static inline void step_generator_init_stepping(PIO pio, uint sm, uint delay) {
+    pio_sm_put_blocking(pio, sm, delay);
+    pio_sm_set_enabled(pio, sm, true);
+}
+
+static inline void step_generator_update_freq(PIO pio, uint sm, uint delay) {
+    pio_sm_clear_fifos(pio, sm);
+    pio_sm_exec(pio, sm, pio_encode_out(pio_null, 32));  // Clear OSR
+    pio_sm_exec(pio, sm, pio_encode_in(pio_null, 32)); 
+    pio_sm_put_blocking(pio, sm, delay);
+}
+
+%}

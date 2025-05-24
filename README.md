@@ -1,5 +1,5 @@
 # Ant-Stepper
-![Ant_Stepper](https://github.com/Vitaris/Ant-Stepper/blob/main/pics/ant_walk.png)
+![Ant_Stepper](https://github.com/Vitaris/Ant-Stepper/blob/main/pics/ant_stepper.jpg)
 
 Ant-Stepper is a C library for the Raspberry Pi Pico (RP2040) that leverages the chip’s unique Programmable IO (PIO) cores to generate hardware-accurate step and direction (step/dir) signals for stepper motors. The aim is to provide a fast, precise, and cost-effective solution for stepper motor control, closely emulating the performance of dedicated hardware step/dir generators.
 

@@ -48,6 +48,8 @@ uint offset_encoder;
 
 uint32_t i = 0;
 int32_t speed2 = 0;
+float position_old = 0.0;
+int32_t abc = 0;
 
 void core1_entry() {
 
@@ -72,11 +74,23 @@ bool servo_timer_callback(struct repeating_timer *t) {
     button_compute(F3); 
     button_compute(F4);
 
+    stepper_compute(stepper_1);
+    stepper_compute(stepper_2);
+
+    int32_t speed3 = (int32_t)(stepper_get_pos_debug(stepper_1) - position_old);
+    position_old = stepper_get_pos_debug(stepper_1);
+    abc += 1;
+    if (abc > 20000) {
+        abc = 20000;
+    }
+    stepper_update_speed(stepper_1, abc);
+
     if (F1->state_dropped){
+        stepper_goto(stepper_1, 100, 10);
 
     } 
     else if (F2->state_dropped){
-        F2_pressed = true;
+        F2_pressed = true; 
     }
     else if (F3->state_dropped){
         F3_pressed = true;
@@ -98,9 +112,6 @@ int32_t generate_sine_wave(uint32_t step, uint32_t period) {
 
 bool LCD_refresh_timer_callback(struct repeating_timer *t) {
     lcd_refresh = true;
-    speed2 = generate_sine_wave(i, 5000);
-    stepper_update_speed(stepper_1, speed2);
-    i++;
     return true;
 }
 
@@ -109,10 +120,6 @@ int main() {
 
     stepper_1 = stepper_init(18, 0);
     stepper_2 = stepper_init(3, 1);
-    
-    // stepper_update_speed(stepper_1, 1000);
-    // stepper_update_speed(stepper_2, 5000);
-    int32_t speed = 1000;
 
     F1 = create_button(12);
     F2 = create_button(13);
@@ -120,10 +127,10 @@ int main() {
     F4 = create_button(14);
     
     // Timer for servo control
-    // add_repeating_timer_ms(-1, servo_timer_callback, NULL, &servo_timer);
+    add_repeating_timer_ms(-1, servo_timer_callback, NULL, &servo_timer);
 
     // 100ms LCD refresh timer
-    add_repeating_timer_ms(-1, LCD_refresh_timer_callback, NULL, &LCD_refresh_timer);
+    // add_repeating_timer_ms(-1, LCD_refresh_timer_callback, NULL, &LCD_refresh_timer);
     
     // Launch core1
     // multicore_launch_core1(core1_entry);
@@ -131,43 +138,16 @@ int main() {
     // Initial wait 
     // busy_wait_ms(500);
 
-    int button = 0;
 
     while (1)
     {
-        button_compute(F1);
-        button_compute(F2);
-        button_compute(F3); 
-        button_compute(F4);
-
-        stepper_compute(stepper_1);
-        stepper_compute(stepper_2);
-
-        if (F1->state_dropped) {
-            button = 1;
-            speed = 1000;
-            stepper_update_speed(stepper_1, speed);
-        } else if (F2->state_dropped) {
-            button = 2;
-            stepper_stop(stepper_1);
-        } else if (F3->state_dropped) {
-            button = 3;
-            speed += 1000;
-            stepper_update_speed(stepper_1, speed);
-        } else if (F4->state_dropped) {
-            button = 4;
-            speed -= 1000;
-            stepper_update_speed(stepper_1, speed);
-        } else {
-            button = 0;
-        }
 
         // Print your table Bold: \x1b[1m Abc \x1b[0m
         printf("┌──────────────────────────┐\n");
         printf("│ Stepper Motor    0       │\n");
         printf("├────────────┬─────────────┤\n");
         printf("│ Position 1 │ Position 2  │\n");
-        printf("│     %3d    │    %3d      │\n", stepper_get_position(stepper_1), stepper_get_position(stepper_2));
+        printf("│     %3d    │    %3d      │\n", stepper_get_position(stepper_1), stepper_get_pos_debug(stepper_1));
         printf("└────────────┴─────────────┘\n");
 
         

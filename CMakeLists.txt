@@ -11,6 +11,7 @@ add_executable(ant_stepper
     lcd/lcd.c
     button/button.c
     src/stepper_controller.c
+    servo_control/servo_control.c
 )
 
 pico_generate_pio_header(ant_stepper ${CMAKE_CURRENT_LIST_DIR}/src/step_generator.pio)

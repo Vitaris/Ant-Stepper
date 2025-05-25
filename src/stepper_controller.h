@@ -51,4 +51,8 @@ void stepper_update_speed(stepper_t* stepper, int32_t speed);
  */
 uint32_t stepper_get_position(stepper_t* stepper);
 
+float stepper_get_pos_debug(stepper_t* stepper);
+
+void stepper_goto(stepper_t* stepper, float position, float speed);
+
 #endif // STEPPER_CONTROLLER_H

@@ -1,10 +1,11 @@
 #include "pico/stdlib.h"
 #include <stdio.h>
 #include <stdlib.h>  
-#include "stepper_controller.h"
 #include "hardware/pio.h"
+#include "stepper_controller.h"
 #include "stepdir_counter.pio.h"
-#include "step_generator.pio.h"  
+#include "step_generator.pio.h"
+#include "../servo_control/servo_control.h"
 
 void update_step_generator(stepper_t* stepper, uint32_t freq, bool direction);
 
@@ -22,12 +23,16 @@ struct stepper {
     uint8_t pin;
     uint32_t step;
     uint32_t position;
+    float position2;
+    servo_control_t* servo_control; // Pointer to servo control structure
 };
 
 stepper_t* stepper_init(const uint8_t pin, const uint8_t sm) {
     stepper_t* stepper = calloc(1, sizeof(struct stepper));
     stepper->sm = sm;
     stepper->pin = pin;
+
+    stepper->servo_control = servo_control_init(&stepper->position2, NULL, NULL);
 
     if (!pio_initialized) {
         pio_clear_instruction_memory(stepping_pio);     // Clear pio0
@@ -53,6 +58,7 @@ stepper_t* stepper_init(const uint8_t pin, const uint8_t sm) {
 
 void stepper_compute(stepper_t* const stepper) {
     stepper->position = stepdir_counter_get_count(encoder_pio, stepper->sm);
+    servo_control_compute(stepper->servo_control);
 }
 
 bool stepper_is_active(stepper_t* stepper) {
@@ -94,4 +100,12 @@ void update_step_generator(stepper_t* stepper, uint32_t freq, bool direction) {
 
 uint32_t stepper_get_position(stepper_t* stepper) {
     return stepper->position;
+}
+
+float stepper_get_pos_debug(stepper_t* stepper) {
+    return servo_control_get_next_position(stepper->servo_control);
+}
+
+void stepper_goto(stepper_t* stepper, float position, float speed) {
+    servo_control_goto(stepper->servo_control, position, speed);
 }

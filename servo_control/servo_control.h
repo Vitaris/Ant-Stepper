@@ -5,7 +5,7 @@
 
 typedef struct servo_control servo_control_t;
 
-servo_control_t* servo_control_init(float* current_position, bool* man_plus, bool* man_minus);
+servo_control_t* servo_control_init(float* current_position, bool* enable, bool* man_plus, bool* man_minus);
 
 void servo_control_compute(servo_control_t* servo_control);
 

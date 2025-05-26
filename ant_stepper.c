@@ -76,23 +76,26 @@ bool servo_timer_callback(struct repeating_timer *t) {
 
     stepper_compute(stepper_1);
     stepper_compute(stepper_2);
+    float position_new = stepper_get_pos_debug(stepper_1);
+    // ms, motor steps, microsteps, polovicna freq
+    int32_t speed3 = (int32_t)((position_new - position_old) * 1000.0 * 200 * 250 * 0.5); 
 
-    int32_t speed3 = (int32_t)(stepper_get_pos_debug(stepper_1) - position_old);
     position_old = stepper_get_pos_debug(stepper_1);
-    abc += 1;
-    if (abc > 20000) {
-        abc = 20000;
-    }
-    stepper_update_speed(stepper_1, abc);
+    // abc += 1;
+    // if (abc > 20000) {
+    //     abc = 20000;
+    // }
+    stepper_update_speed(stepper_1, speed3);
 
     if (F1->state_dropped){
-        stepper_goto(stepper_1, 100, 10);
+        stepper_goto(stepper_1, position_new + 1, 1);
 
     } 
     else if (F2->state_dropped){
-        F2_pressed = true; 
+        stepper_goto(stepper_1, position_new + 10, 10);
     }
     else if (F3->state_dropped){
+        stepper_goto(stepper_1, position_new + 100, 20);
         F3_pressed = true;
     }
     else if (F4->state_dropped){
@@ -147,7 +150,7 @@ int main() {
         printf("│ Stepper Motor    0       │\n");
         printf("├────────────┬─────────────┤\n");
         printf("│ Position 1 │ Position 2  │\n");
-        printf("│     %3d    │    %3d      │\n", stepper_get_position(stepper_1), stepper_get_pos_debug(stepper_1));
+        printf("│     %3d    │    %3f      │\n", stepper_get_position(stepper_1), stepper_get_pos_debug(stepper_1));
         printf("└────────────┴─────────────┘\n");
 
         

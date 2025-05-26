@@ -32,7 +32,7 @@ stepper_t* stepper_init(const uint8_t pin, const uint8_t sm) {
     stepper->sm = sm;
     stepper->pin = pin;
 
-    stepper->servo_control = servo_control_init(&stepper->position2, NULL, NULL);
+    stepper->servo_control = servo_control_init(&stepper->position2, &stepper->enable, NULL, NULL);
 
     if (!pio_initialized) {
         pio_clear_instruction_memory(stepping_pio);     // Clear pio0

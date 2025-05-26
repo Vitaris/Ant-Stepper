@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <math.h>
 #include "servo_control.h"
+#include "../button/button.h"
 
 #define CYCLE_TIME 0.001
 #define FOLLOWING_ERROR 1.0 // Maximum permisible position deviation
@@ -45,13 +47,13 @@ struct servo_control {
 	float scale;			// Scale factor of the servo_control motor
 };
 
-servo_control_t* servo_control_init(float* current_position, bool* man_plus, bool* man_minus) {
+servo_control_t* servo_control_init(float* current_position, bool* enable, bool* man_plus, bool* man_minus) {
     servo_control_t* servo_control = calloc(1, sizeof(struct servo_control));
     if (servo_control == NULL) {
         fprintf(stderr, "Failed to allocate memory for servo_control control\n");
         return NULL;
     }
-
+	servo_control->enable = enable;
     servo_control->man_plus = man_plus;
     servo_control->man_minus = man_minus;
 
@@ -185,27 +187,27 @@ void servo_control_goto(servo_control_t* const servo_control, const float positi
 
 
 
-void servo_manual_handling(servo_control_t* const servo_control, const float min, const float max, const float speed, bool homed) {
-	float limit_min;
-	float limit_max;
+// void servo_manual_handling(servo_control_t* const servo_control, const float min, const float max, const float speed, bool homed) {
+// 	float limit_min;
+// 	float limit_max;
 
-	if (homed) {
-		limit_min = min;
-		limit_max = max; 
-	}
-	else {
-		limit_min = -2000;
-		limit_max = 2000;
-	}
-	if (button_raised(servo_control->man_plus)) {
-		servo_control->delay_start = UINT32_MAX;
-		servo_goto(servo_control, servo_control->next_stop = limit_max, speed);
-	}
-	else if (button_raised(servo_control->man_minus)) {
-		servo_control->delay_start = UINT32_MAX;
-		servo_goto(servo_control, servo_control->next_stop = limit_min, speed);
-	}
-	else if (button_dropped(servo_control->man_plus) || button_dropped(servo_control->man_minus)) {
-		servo_stop_positioning(servo_control);
-	}
-}
+// 	if (homed) {
+// 		limit_min = min;
+// 		limit_max = max; 
+// 	}
+// 	else {
+// 		limit_min = -2000;
+// 		limit_max = 2000;
+// 	}
+// 	if (button_raised(servo_control->man_plus)) {
+// 		servo_control->delay_start = UINT32_MAX;
+// 		servo_goto(servo_control, servo_control->next_stop = limit_max, speed);
+// 	}
+// 	else if (button_raised(servo_control->man_minus)) {
+// 		servo_control->delay_start = UINT32_MAX;
+// 		servo_goto(servo_control, servo_control->next_stop = limit_min, speed);
+// 	}
+// 	else if (button_dropped(servo_control->man_plus) || button_dropped(servo_control->man_minus)) {
+// 		servo_stop_positioning(servo_control);
+// 	}
+// }

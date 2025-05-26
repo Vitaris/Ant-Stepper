@@ -49,7 +49,7 @@ void stepper_update_speed(stepper_t* stepper, int32_t speed);
  * @param stepper Pointer to the stepper_t structure.
  * @return Current position (step count).
  */
-uint32_t stepper_get_position(stepper_t* stepper);
+int32_t stepper_get_position(stepper_t* stepper);
 
 float stepper_get_next_calculated_pos_DEBUG(stepper_t* stepper);
 

@@ -22,7 +22,7 @@ struct stepper {
     uint8_t sm;
     uint8_t pin;
     uint32_t step;
-    uint32_t position;
+    int32_t position;
     float position2;
     servo_control_t* servo_control; // Pointer to servo control structure
 };
@@ -98,7 +98,7 @@ void update_step_generator(stepper_t* stepper, uint32_t freq, bool direction) {
     gpio_put(stepper->pin + 1, direction);
 }
 
-uint32_t stepper_get_position(stepper_t* stepper) {
+int32_t stepper_get_position(stepper_t* stepper) {
     return stepper->position;
 }
 

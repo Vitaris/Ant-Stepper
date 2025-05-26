@@ -47,9 +47,7 @@ uint offset;
 uint offset_encoder;
 
 uint32_t i = 0;
-int32_t speed2 = 0;
-float position_old = 0.0;
-int32_t abc = 0;
+float stepper_position = 0.0f;
 
 void core1_entry() {
 
@@ -76,34 +74,38 @@ bool servo_timer_callback(struct repeating_timer *t) {
 
     stepper_compute(stepper_1);
     stepper_compute(stepper_2);
-    float position_new = stepper_get_pos_debug(stepper_1);
-    // ms, motor steps, microsteps, polovicna freq
-    int32_t speed3 = (int32_t)((position_new - position_old) * 1000.0 * 200 * 250 * 0.5); 
 
-    position_old = stepper_get_pos_debug(stepper_1);
-    // abc += 1;
-    // if (abc > 20000) {
-    //     abc = 20000;
-    // }
-    stepper_update_speed(stepper_1, speed3);
+    // Convert to steps, steps per revolution, microsteps
+    stepper_position = (float)(stepper_get_position(stepper_1) * 2.0 / (200.0 * 250.0)); 
+
+    // ms, motor steps, microsteps, polovicna freq
+    int32_t speed = (int32_t)((stepper_get_next_calculated_pos_DEBUG(stepper_1) - stepper_position) * 1000.0 * 200 * 250 * 0.5); 
+
+    stepper_update_speed(stepper_1, speed);
 
     if (F1->state_dropped){
-        stepper_goto(stepper_1, position_new + 1, 1);
+        stepper_change_acc(stepper_1, 10);
+        stepper_goto(stepper_1, stepper_position + 1, 1);
 
     } 
     else if (F2->state_dropped){
-        stepper_goto(stepper_1, position_new + 10, 10);
+        stepper_change_acc(stepper_1, 50);
+        stepper_goto(stepper_1, stepper_position + 10, 10);
     }
     else if (F3->state_dropped){
-        stepper_goto(stepper_1, position_new + 100, 20);
+        stepper_change_acc(stepper_1, 800);
+        stepper_goto(stepper_1, stepper_position + 10, 20);
         F3_pressed = true;
     }
     else if (F4->state_dropped){
+        stepper_change_acc(stepper_1, 10);
+        stepper_goto(stepper_1, stepper_position - 1, 1);
 
     } 
     else if (F1->state_raised || F2->state_raised || F3->state_raised || F4->state_raised) {
         some_released = true;
     }
+
     return true;
 }
 
@@ -150,7 +152,7 @@ int main() {
         printf("│ Stepper Motor    0       │\n");
         printf("├────────────┬─────────────┤\n");
         printf("│ Position 1 │ Position 2  │\n");
-        printf("│     %3d    │    %3f      │\n", stepper_get_position(stepper_1), stepper_get_pos_debug(stepper_1));
+        printf("│     %.2f    │    %.2f      │\n", stepper_position, stepper_get_next_calculated_pos_DEBUG(stepper_1));
         printf("└────────────┴─────────────┘\n");
 
         

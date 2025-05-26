@@ -102,10 +102,13 @@ uint32_t stepper_get_position(stepper_t* stepper) {
     return stepper->position;
 }
 
-float stepper_get_pos_debug(stepper_t* stepper) {
+float stepper_get_next_calculated_pos_DEBUG(stepper_t* stepper) {
     return servo_control_get_next_position(stepper->servo_control);
 }
 
 void stepper_goto(stepper_t* stepper, float position, float speed) {
     servo_control_goto(stepper->servo_control, position, speed);
+}
+void stepper_change_acc(stepper_t* stepper, float acc) {
+    servo_control_change_acc(stepper->servo_control, acc);
 }

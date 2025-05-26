@@ -13,5 +13,5 @@ void servo_control_calculate_next_position(servo_control_t* servo_control);
 
 float servo_control_get_next_position(servo_control_t* servo_control);
 void servo_control_goto(servo_control_t* const servo_control, const float position, const float speed);
-
+void servo_control_change_acc(servo_control_t* const servo_control, const float acc);
 #endif // SERVO_CONTROL_H

@@ -185,6 +185,9 @@ void servo_control_goto(servo_control_t* const servo_control, const float positi
     _servo_goto(servo_control, position, speed);
 }
 
+void servo_control_change_acc(servo_control_t* const servo_control, const float acc) {
+	servo_control->nominal_acc = acc;
+}
 
 
 // void servo_manual_handling(servo_control_t* const servo_control, const float min, const float max, const float speed, bool homed) {

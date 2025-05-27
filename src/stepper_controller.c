@@ -25,7 +25,6 @@ struct stepper {
     uint8_t pin;
     uint32_t step;
     float position;
-    float steps_per_rev;
     float microsteps;
     float max_speed;
     float max_acceleration;
@@ -40,8 +39,7 @@ stepper_t* stepper_init(const uint8_t pin, const uint8_t sm,
     stepper_t* stepper = calloc(1, sizeof(struct stepper));
     stepper->pin = pin;
     stepper->sm = sm;
-    stepper->steps_per_rev = steps_per_rev;
-    stepper->microsteps = microsteps;
+    stepper->microsteps = steps_per_rev * microsteps;
     stepper->max_speed = max_speed;
     stepper->max_acceleration = max_acceleration;
 
@@ -70,18 +68,17 @@ stepper_t* stepper_init(const uint8_t pin, const uint8_t sm,
 }
 
 void stepper_compute(stepper_t* const stepper) {
-    float microsteps_per_rev = stepper->steps_per_rev * stepper->microsteps;
     int32_t steps_count = stepdir_counter_get_count(encoder_pio, stepper->sm);
 
     // Convert to steps, steps per revolution, microsteps
-    stepper->position = (float)(steps_count) * 2.0 / microsteps_per_rev; 
+    stepper->position = (float)(steps_count) * 2.0 / stepper->microsteps; 
 
     // Compute the next position based on the servo control logic
     servo_control_compute(stepper->servo_control);
 
     // Calculate the speed based on the next position
     float position_error = servo_control_get_next_position(stepper->servo_control) - stepper->position;
-    float steps_per_second = position_error * microsteps_per_rev * 0.5 / CYCLE_TIME;
+    float steps_per_second = position_error * stepper->microsteps * 0.5 / CYCLE_TIME;
     
     // Update the stepper speed                    
     stepper_update_speed(stepper, (int32_t)steps_per_second);

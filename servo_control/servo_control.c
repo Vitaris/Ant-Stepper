@@ -71,15 +71,11 @@ servo_control_t* servo_control_init(float* current_position, bool* enable, bool*
 
 void servo_control_compute(servo_control_t* servo_control) {
     servo_control_calculate_next_position(servo_control);
-
-
 }
-
 
 float get_breaking_distance(const servo_control_t* const servo_control) {
 	return 0.5 * (pow(servo_control->computed_speed, 2) / servo_control->current_acc);
 }
-
 
 void servo_control_calculate_next_position(servo_control_t* servo_control) {
 	switch(servo_control->positioning) {

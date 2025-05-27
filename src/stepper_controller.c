@@ -7,6 +7,8 @@
 #include "step_generator.pio.h"
 #include "../servo_control/servo_control.h"
 
+#define CYCLE_TIME 0.001 // 1 ms cycle time
+
 void update_step_generator(stepper_t* stepper, uint32_t freq, bool direction);
 
 static bool pio_initialized = false;
@@ -22,17 +24,28 @@ struct stepper {
     uint8_t sm;
     uint8_t pin;
     uint32_t step;
-    int32_t position;
-    float position2;
+    float position;
+    float steps_per_rev;
+    float microsteps;
+    float max_speed;
+    float max_acceleration;
     servo_control_t* servo_control; // Pointer to servo control structure
 };
 
-stepper_t* stepper_init(const uint8_t pin, const uint8_t sm) {
+stepper_t* stepper_init(const uint8_t pin, const uint8_t sm, 
+                        const float steps_per_rev, 
+                        const float microsteps, 
+                        const float max_speed, 
+                        const float max_acceleration) {
     stepper_t* stepper = calloc(1, sizeof(struct stepper));
-    stepper->sm = sm;
     stepper->pin = pin;
+    stepper->sm = sm;
+    stepper->steps_per_rev = steps_per_rev;
+    stepper->microsteps = microsteps;
+    stepper->max_speed = max_speed;
+    stepper->max_acceleration = max_acceleration;
 
-    stepper->servo_control = servo_control_init(&stepper->position2, &stepper->enable, NULL, NULL);
+    stepper->servo_control = servo_control_init(&stepper->position, &stepper->enable, NULL, NULL);
 
     if (!pio_initialized) {
         pio_clear_instruction_memory(stepping_pio);     // Clear pio0
@@ -57,8 +70,21 @@ stepper_t* stepper_init(const uint8_t pin, const uint8_t sm) {
 }
 
 void stepper_compute(stepper_t* const stepper) {
-    stepper->position = stepdir_counter_get_count(encoder_pio, stepper->sm);
+    float microsteps_per_rev = stepper->steps_per_rev * stepper->microsteps;
+    int32_t steps_count = stepdir_counter_get_count(encoder_pio, stepper->sm);
+
+    // Convert to steps, steps per revolution, microsteps
+    stepper->position = (float)(steps_count) * 2.0 / microsteps_per_rev; 
+
+    // Compute the next position based on the servo control logic
     servo_control_compute(stepper->servo_control);
+
+    // Calculate the speed based on the next position
+    float position_error = servo_control_get_next_position(stepper->servo_control) - stepper->position;
+    float steps_per_second = position_error * microsteps_per_rev * 0.5 / CYCLE_TIME;
+    
+    // Update the stepper speed                    
+    stepper_update_speed(stepper, (int32_t)steps_per_second);
 }
 
 bool stepper_is_active(stepper_t* stepper) {
@@ -100,10 +126,6 @@ void update_step_generator(stepper_t* stepper, uint32_t freq, bool direction) {
 
 int32_t stepper_get_position(stepper_t* stepper) {
     return stepper->position;
-}
-
-float stepper_get_next_calculated_pos_DEBUG(stepper_t* stepper) {
-    return servo_control_get_next_position(stepper->servo_control);
 }
 
 void stepper_goto(stepper_t* stepper, float position, float speed) {

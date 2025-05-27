@@ -11,7 +11,11 @@ typedef struct stepper stepper_t;
  * @param sm  PIO state machine number to use.
  * @return Pointer to the initialized stepper_t structure.
  */
-stepper_t* stepper_init(const uint8_t pin, const uint8_t sm);
+stepper_t* stepper_init(const uint8_t pin, const uint8_t sm, 
+                        const float steps_per_rev, 
+                        const float microsteps, 
+                        const float max_speed, 
+                        const float max_acceleration);
 
 /**
  * @brief Perform stepper control computations (should be called periodically).
@@ -50,8 +54,6 @@ void stepper_update_speed(stepper_t* stepper, int32_t speed);
  * @return Current position (step count).
  */
 int32_t stepper_get_position(stepper_t* stepper);
-
-float stepper_get_next_calculated_pos_DEBUG(stepper_t* stepper);
 
 void stepper_goto(stepper_t* stepper, float position, float speed);
 void stepper_change_acc(stepper_t* stepper, float acc);
